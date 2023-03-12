@@ -97,7 +97,7 @@ function saveMovie() {
   }
 
   // Create an object to hold the data from the form
-  var data = {
+  const data = {
     movieTitle: document.getElementById("movieTitle").value,
     movieReleaseDate: document.getElementById("movieReleaseDate").value,
     movieSynopsis: document.getElementById("movieSynopsis").value,
