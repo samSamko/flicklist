@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
   <meta charset="utf-8">
@@ -10,31 +10,228 @@
   <script src="https://kit.fontawesome.com/f80344e213.js" crossorigin="anonymous"></script>
 </head>
 
-<body>
-  <div class="d-flex m-3 flex-column align-items-center">
-    <button type="button" class="btn btn-primary btn-lg rounded-3 mb-3"><i class="fa-solid fa-plus"></i></button>
-    <div class="card mb-3" style="width: 28rem;">
-      <div class="card-body">
-        <h5 class="card-title">Um Pistoleiro Chamado Papaco</h5>
-        <h6 class="card-subtitle mb-2 text-muted">06/09/1986</h6>
-        <p class="card-text">Um Pistoleiro Chamado Papaco, também lançado como Os Amores de um Pistoleiro, é um filme
-          brasileiro pornochanchada de 1986 dirigido por Mário Vaz Filho. Foi produzido na Boca do Lixo, em São Paulo,
-          pela Olympus Filmes. Na Internet, o filme se tornou um meme.</p>
-        <div class="d-flex justify-content-between">
-          <h3 class="card-text">3.5 <i class="fa-solid fa-star" style="color: yellow;"></i>
-          </h3>
-          <div class="d-grid d-md-flex justify-content-md-end btn-group" role="group"
-            aria-label="Basic mixed styles example">
-            <button type="button" class="btn btn-secondary"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button type="button" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
-          </div>
+<body onload="loadData()">
+  <div class="modal fade" id="registerMovieModal" tabindex="-1" aria-labelledby="registerMovieModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="registerMovieModalLabel">Cadastrar Filme</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="movieForm">
+            <div class="mb-3">
+              <label for="movieTitle" class="form-label">Titulo</label>
+              <input type="text" class="form-control" id="movieTitle">
+            </div>
+            <div class="mb-3">
+              <label for="movieReleaseDate" class="form-label">Data de Lançamento</label>
+              <input type="date" class="form-control" id="movieReleaseDate">
+            </div>
+            <div class="mb-3">
+              <label for="movieSynopsis" class="form-label">Sinopse</label>
+              <textarea class="form-control" id="movieSynopsis" name="movieSynopsis" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="movieRating" class="form-label">Nota <output id="value"></output></label>
+              <input type="range" class="form-control" id="movieRating" min="0" max="5" step="0.1">
+            </div>
+            <div class="modal-footer">
+              <button type="button" onclick="saveMovie()" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
+
+  <div class="d-flex m-3 flex-column align-items-center" id="moviesList">
+
+    <button type="button" class="btn btn-primary btn-lg rounded-3 mb-3" data-bs-toggle="modal"
+      data-bs-target="#registerMovieModal" onclick="clearForm()"><i class="fa-solid fa-plus"></i></button>
+
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
     crossorigin="anonymous"></script>
+  <script>
+
+    //Sample data
+    var sample = {
+      movieTitle: "De Volta para o Futuro",
+      movieReleaseDate: new Date(1985, 12, 25),
+      movieSynopsis: "Marty travels back in time using an eccentric scientist's time machine. However, he must make his high-school-aged parents fall in love in order to return to the present.",
+      movieRating: 4.7
+    };
+
+    localStorage.setItem(sample.movieTitle.replaceAll(' ', ''), JSON.stringify(sample));
+
+
+    //Read all saved key/value pairs in local storage and draw cards
+    function loadData() {
+
+      // Get all keys in localStorage
+      var keys = Object.keys(localStorage);
+
+      // Loop through each key and print the value
+      keys.forEach(function (key) {
+        if (!document.getElementById(key) && key != "currentEdit") {
+          var value = localStorage.getItem(key);
+          var data = JSON.parse(value);
+          createCard(data.movieTitle, data.movieReleaseDate, data.movieSynopsis, data.movieRating);
+        }
+      });
+
+    }
+
+    // Select the movies column
+    const moviesList = document.getElementById("moviesList");
+
+    // Show rating on range selector
+    const value = document.querySelector("#value")
+    const input = document.querySelector("#movieRating")
+    value.textContent = input.value
+    input.addEventListener("input", (event) => {
+      value.textContent = event.target.value
+    })
+
+    // Format date to BR standard
+    function formatDate(date) {
+      var date = new Date(date)
+      return ('0' + date.getDate()).slice(-2) + '/'
+        + ('0' + (date.getMonth())).slice(-2) + '/'
+        + date.getFullYear();
+
+    }
+
+    // Save the movie based on form values
+    function saveMovie() {
+
+      // Get the input values
+      var movieTitle = document.getElementById("movieTitle").value;
+      //Check if has title
+      if (movieTitle == '') {
+        alert("Preencha o titulo do filme!");
+        return;
+      }
+
+      var movieReleaseDate = document.getElementById("movieReleaseDate").value;
+      var movieSynopsis = document.getElementById("movieSynopsis").value;
+      var movieRating = document.getElementById("movieRating").value;
+
+      // Create an object to hold the data
+      var data = {
+        movieTitle: movieTitle,
+        movieReleaseDate: movieReleaseDate,
+        movieSynopsis: movieSynopsis,
+        movieRating: movieRating
+      };
+
+      // Delete old id if name changed
+      var currentEdit = localStorage.getItem("currentEdit");
+      if (currentEdit && movieTitle != currentEdit) {
+        localStorage.removeItem(localStorage.getItem("currentEdit"));
+        document.getElementById(localStorage.getItem("currentEdit")).remove();
+      };
+      localStorage.removeItem("currentEdit");
+
+      // Refresh if ID didnt change
+      var exists = document.getElementById(data.movieTitle.replaceAll(' ', ''));
+      if (exists) { exists.remove(); };
+
+      // Save the data to localStorage
+      localStorage.setItem(data.movieTitle.replaceAll(' ', ''), JSON.stringify(data));
+
+      //Cleanup and reload
+      clearForm();
+      loadData();
+
+      //Dismiss modal
+      var myModalEl = document.getElementById('registerMovieModal')
+      var modal = bootstrap.Modal.getInstance(myModalEl)
+      modal.hide();
+    }
+
+
+    //Remove movie based on name
+    function deleteMovie(name) {
+      var element = document.getElementById(name);
+      if (element) {
+        localStorage.removeItem(name);
+        element.remove();
+      }
+    }
+
+    //Create an element with any atribute and append to parent element
+    function createElement(tagName, attributes = {}, textContent, parentElement) {
+      const element = document.createElement(tagName);
+      for (let [key, value] of Object.entries(attributes)) {
+        if (key === "class") {
+          element.classList.add(...value);
+        } else {
+
+          element.setAttribute(key.replaceAll('_', '-'), value);
+        }
+      }
+      if (textContent) {
+        element.textContent = textContent;
+      }
+      if (parentElement) {
+        parentElement.appendChild(element);
+      }
+      return element;
+    }
+
+    // Create a movie card based on input
+    function createCard(movieTitle, movieReleaseDate, movieSynopsis, movieRating) {
+      var card = createElement("div", { class: ["card", "mb-3"], style: "width: 28rem", id: movieTitle.replaceAll(' ', '') }, null, moviesList);
+      var body = createElement("div", { class: ["card-body"] }, null, card);
+      createElement("h5", { class: ["card-title"] }, movieTitle, body);
+      createElement("h6", { class: ["card-subtitle", "mb-2", "text-muted"] }, formatDate(movieReleaseDate), body);
+      createElement("p", { class: ["card-text"] }, movieSynopsis, body);
+      var footer = createElement("div", { class: ["d-flex", "justify-content-between"] }, null, body);
+      var rating = createElement("h3", { class: ["card-text"] }, movieRating + "/5 ", footer);
+      createElement("i", { class: ["fa-solid", "fa-star"], style: "color: yellow" }, null, rating);
+      var buttonGroup = createElement("div", { class: ["d-md-flex", "justify-content-md-end", "btn-group"], role: "group" }, null, footer)
+      var edit = createElement("button", {
+        type: "button", class: ["btn", "btn-secondary"], data_movie: movieTitle.replaceAll(' ', ''), onclick: "editMovie(this.dataset.movie)", data_bs_toggle: "modal",
+        data_bs_target: "#registerMovieModal"
+      }, null, buttonGroup);
+      createElement("i", { class: ["fa-solid", "fa-pen-to-square"] }, null, edit);
+      var trash = createElement("button", { type: "button", class: ["btn", "btn-danger"], data_movie: movieTitle.replaceAll(' ', ''), onclick: "deleteMovie(this.dataset.movie)" }, null, buttonGroup);
+      createElement("i", { class: ["fa-solid", "fa-trash"] }, null, trash);
+    }
+
+    // Edit a movie given its ID by loading the values of the movie in storage to the form
+    function editMovie(id) {
+
+      // Switch heading
+      document.getElementById("registerMovieModalLabel").textContent = "Editar Filme";
+
+      //Get current movie data
+      var storage = localStorage.getItem(id);
+      var movie = JSON.parse(storage);
+
+      // Fill fields
+      document.getElementById("movieTitle").value = movie.movieTitle;
+      document.getElementById("movieReleaseDate").valueAsDate = new Date(movie.movieReleaseDate);
+      document.getElementById("movieSynopsis").value = movie.movieSynopsis;
+      document.getElementById("movieRating").value = parseFloat(movie.movieRating);
+      document.getElementById("value").textContent = movie.movieRating;
+
+      // Save original id for updating
+      localStorage.setItem("currentEdit", id);
+    }
+
+    //Clear form and variables for new data
+    function clearForm() {
+      document.getElementById("registerMovieModalLabel").textContent = "Cadastrar Filme";
+      document.getElementById("movieForm").reset();
+      localStorage.removeItem("currentEdit");
+    }
+
+  </script>
 </body>
 
 </html>
