@@ -96,6 +96,19 @@ function saveMovie() {
     return;
   }
 
+  // If form was called from an edit button, delete old ID and card
+  const currentEdit = localStorage.getItem("currentEdit");
+  if (currentEdit) {
+    //If ID (title) changed, delete the old card/ID, else delete the current card and keep ID
+    if (movieTitle != currentEdit) {
+      localStorage.removeItem(currentEdit);
+      document.getElementById(currentEdit).remove();
+    } else {
+      document.getElementById(movieTitle).remove();
+    }
+    localStorage.removeItem("currentEdit");
+  }
+
   // Create an object to hold the data from the form
   const data = {
     movieTitle: document.getElementById("movieTitle").value,
@@ -109,19 +122,6 @@ function saveMovie() {
     data.movieTitle.replaceAll(" ", ""),
     JSON.stringify(data)
   );
-
-  // If form was called from an edit button, delete old ID and card
-  const currentEdit = localStorage.getItem("currentEdit");
-  if (currentEdit) {
-    //If ID (title) changed, delete the old card/ID, else delete the current card and keep ID
-    if (movieTitle != currentEdit) {
-      localStorage.removeItem(currentEdit);
-      document.getElementById(currentEdit).remove();
-    } else {
-      document.getElementById(movieTitle).remove();
-    }
-    localStorage.removeItem("currentEdit");
-  }
 
   //Dismiss modal
   const BSModal = document.getElementById("registerMovieModal");
