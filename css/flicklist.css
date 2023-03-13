@@ -1,3 +1,7 @@
 .fa-solid.fa-star {
     color: gold;
 }
+.card {
+    min-width: 22rem;
+    max-width: 50rem;
+}

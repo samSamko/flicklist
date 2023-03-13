@@ -261,7 +261,7 @@ function createCard(movieTitle, movieReleaseDate, movieSynopsis, movieRating) {
       aria_label: "Editar",
       data_bs_target: "#registerMovieModal",
     },
-    null,
+    "Editar ",
     buttonGroup
   );
   createElement("i", { class: ["fa-solid", "fa-pen-to-square"] }, null, edit);
@@ -278,7 +278,7 @@ function createCard(movieTitle, movieReleaseDate, movieSynopsis, movieRating) {
       aria_label: "Excluir",
       onclick: "confirmDeletion(this.dataset.movie)",
     },
-    null,
+    "Excluir ",
     buttonGroup
   );
   createElement("i", { class: ["fa-solid", "fa-trash"] }, null, trash);
