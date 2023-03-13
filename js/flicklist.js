@@ -7,7 +7,7 @@ const sample = {
   movieRating: 4.7,
 };
 localStorage.setItem(
-  sample.movieTitle.replaceAll(" ", ""),
+  sample.movieTitle.replaceAll(" ", "").toUpperCase(),
   JSON.stringify(sample)
 );
 
@@ -16,8 +16,19 @@ document.getElementById("movieRating").addEventListener("input", (event) => {
   document.getElementById("movieRatingValue").textContent = event.target.value;
 });
 
+//Delete all children
+function removeChildren(parent) {
+  const element = document.getElementById(parent);
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+}
+
 //Retrieve JSONed movie from storage
 function retrieveMovie(id) {
+  if (id == "currentEdit") {
+    return 0;
+  }
   return JSON.parse(localStorage.getItem(id));
 }
 
@@ -47,9 +58,17 @@ function setFocusable(el) {
 //Read all saved key/value pairs in local storage and draw cards
 function loadData() {
   // Get all keys in localStorage
-  const keys = Object.keys(localStorage);
+  var keys = Object.keys(localStorage);
+  // Sort keys based on movie rating (better = first)
+  keys = keys.sort((a, b) => {
+    // Get the rating for each movie from local storage
+    const valueA = retrieveMovie(a).movieRating;
+    const valueB = retrieveMovie(b).movieRating;
+    // Compare the ratings and return the appropriate sort order
+    return valueB - valueA;
+  });
 
-  // Loop through each key and print the value
+  // Loop through each key and create a card based on data
   keys.forEach(function (key) {
     if (!document.getElementById(key) && key != "currentEdit") {
       const data = retrieveMovie(key);
@@ -67,10 +86,11 @@ function loadData() {
 function validateMovieForm() {
   //Title
   const movieTitle = document.getElementById("movieTitle");
+  const movieId = movieTitle.value.replaceAll(" ", "").toUpperCase();
 
   //Check if has title
-  if (movieTitle.value.replaceAll(" ", "") == "") {
-    alert("Preencha o titulo do filme!");
+  if (movieId == "") {
+    alert("Preencha o titulo do filme.");
     movieTitle.focus();
     movieTitle.value = "";
     return false;
@@ -81,8 +101,16 @@ function validateMovieForm() {
 
   //Check if has date
   if (movieReleaseDate.value == "") {
-    alert("Preencha a data do filme!");
+    alert("Preencha a data do filme.");
     movieReleaseDate.focus();
+    return false;
+  }
+
+  //Check if movie is already saved and is not being edited
+  const currentEdit = localStorage.getItem("currentEdit");
+  if (retrieveMovie(movieTitle) && movieTitle != currentEdit) {
+    alert("Filme já cadastrado, edite ou exclua o mesmo.");
+    movieTitle.focus();
     return false;
   }
 
@@ -96,15 +124,12 @@ function saveMovie() {
     return;
   }
 
-  // If form was called from an edit button, delete old ID and card
+  // If form was called from an edit button, delete old ID and clear edit
   const currentEdit = localStorage.getItem("currentEdit");
   if (currentEdit) {
-    //If ID (title) changed, delete the old card/ID, else delete the current card and keep ID
+    //If ID (title) changed, delete the old ID
     if (movieTitle != currentEdit) {
       localStorage.removeItem(currentEdit);
-      document.getElementById(currentEdit).remove();
-    } else {
-      document.getElementById(movieTitle).remove();
     }
     localStorage.removeItem("currentEdit");
   }
@@ -114,12 +139,12 @@ function saveMovie() {
     movieTitle: document.getElementById("movieTitle").value,
     movieReleaseDate: document.getElementById("movieReleaseDate").value,
     movieSynopsis: document.getElementById("movieSynopsis").value,
-    movieRating: document.getElementById("movieRating").value,
+    movieRating: parseFloat(document.getElementById("movieRating").value),
   };
 
   // Save the data to localStorage with the key as the name of the movie without whitespaces
   localStorage.setItem(
-    data.movieTitle.replaceAll(" ", ""),
+    data.movieTitle.replaceAll(" ", "").toUpperCase(),
     JSON.stringify(data)
   );
 
@@ -130,6 +155,7 @@ function saveMovie() {
 
   //Cleanup and reload
   clearForm();
+  removeChildren("moviesList");
   loadData();
 }
 
@@ -174,7 +200,10 @@ function createCard(movieTitle, movieReleaseDate, movieSynopsis, movieRating) {
   //div + ID of movie (title)
   const card = createElement(
     "div",
-    { class: ["card", "mb-3"], id: movieTitle.replaceAll(" ", "") },
+    {
+      class: ["card", "mb-3"],
+      id: movieTitle.replaceAll(" ", "").toUpperCase(),
+    },
     null,
     document.getElementById("moviesList")
   );
@@ -226,7 +255,7 @@ function createCard(movieTitle, movieReleaseDate, movieSynopsis, movieRating) {
     {
       type: "button",
       class: ["btn", "btn-secondary"],
-      data_movie: movieTitle.replaceAll(" ", ""),
+      data_movie: movieTitle.replaceAll(" ", "").toUpperCase(),
       onclick: "editMovie(this.dataset.movie)",
       data_bs_toggle: "modal",
       aria_label: "Editar",
@@ -243,7 +272,7 @@ function createCard(movieTitle, movieReleaseDate, movieSynopsis, movieRating) {
     {
       type: "button",
       class: ["btn", "btn-danger"],
-      data_movie: movieTitle.replaceAll(" ", ""),
+      data_movie: movieTitle.replaceAll(" ", "").toUpperCase(),
       data_bs_toggle: "modal",
       data_bs_target: "#confirmDeleteModal",
       aria_label: "Excluir",
